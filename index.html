@@ -67,7 +67,7 @@ const KEY='luxe_perfume_products_v1';
 const starter=[
  {id:1,name:'Добавь свой первый аромат',price:0,volume:'',category:'Новинка',desc:'Открой «Управление товарами», чтобы добавить товар.',image:''}
 ];
-let products=JSON.parse(localStorage.getItem(KEY)||'null')||[];
+let products=JSON.parse(localStorage.getItem(KEY)||'null')||starter;
 const $=id=>document.getElementById(id);
 function save(){localStorage.setItem(KEY,JSON.stringify(products));render()}
 function money(n){return new Intl.NumberFormat('ru-RU').format(n)+' ₽'}
