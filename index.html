@@ -1,121 +1,47 @@
-innerHTML='<p>Корзина пока пуста.</p>';
-  }else{
-    $('cartItems').innerHTML=cart.map(x=>`
-      <div class="cart-item">
-        <div>
-          <strong>${safe(x.name)}</strong><br>
-          ${money(x.price)} × ${x.qty}
-        </div>
-        <div class="cart-actions">
-          <button onclick="changeQty(${Number(x.id)},-1)">−</button>
-          <button onclick="changeQty(${Number(x.id)},1)">+</button>
-          <button onclick="removeItem(${Number(x.id)})">✕</button>
-        </div>
-      </div>
-    `).join('');
-  }
+<!DOCTYPE html>
 
-  const total=cart.reduce((s,x)=>s+(Number(x.price)||0)*x.qty,0);
-  $('cartTotal').textContent=money(total);
-}
+<html lang="ru">
 
-function changeQty(id,amount){
-  const item=cart.find(x=>Number(x.id)===Number(id));
-  if(!item)return;
-  item.qty+=amount;
-  if(item.qty<=0)cart=cart.filter(x=>Number(x.id)!==Number(id));
-  saveCart();
-}
+<head>
 
-function removeItem(id){
-  cart=cart.filter(x=>Number(x.id)!==Number(id));
-  saveCart();
-}
+<meta charset="UTF-8">
 
-$('adminToggle').onclick=()=>{
-  $('admin').classList.toggle('show');
-  $('admin').scrollIntoView({behavior:'smooth',block:'nearest'});
-};
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-$('productForm').addEventListener('submit',e=>{
-  e.preventDefault();
+<title>LUXE PERFUME</title>
 
-  const item={
-    id:Date.now(),
-    name:$('pname').value.trim(),
-    price:Number($('pprice').value),
-    volume:$('pvolume').value.trim(),
-    category:$('pcategory').value.trim(),
-    image:$('pimage').value.trim(),
-    desc:$('pdesc').value.trim()
-  };
+<style>
 
-  products.unshift(item);
-  save();
-  e.target.reset();
-  alert('Товар добавлен в каталог!');
-});
+*{box-sizing:border-box}
 
-$('search').addEventListener('input',render);
-$('sort').addEventListener('change',render);
+body{margin:0;background:#10100f;color:#f5eee2;font-family:Arial,sans-serif}
 
-$('cartOpen').onclick=()=> $('cartPanel').classList.add('open');
-$('cartClose').onclick=()=> $('cartPanel').classList.remove('open');
+header{text-align:center;padding:45px 15px;background:linear-gradient(135deg,#17130e,#49351d,#17130e);border-bottom:1px solid #c4a16a}
 
-$('cartPanel').onclick=e=>{
-  if(e.target===$('cartPanel'))$('cartPanel').classList.remove('open');
-};
+.logo{font-size:34px;letter-spacing:6px;color:#d6b77d;font-weight:bold}
 
-$('cartCheckout').onclick=()=>{
-  if(!cart.length){
-    alert('Корзина пуста!');
-    return;
-  }
+.subtitle{font-size:12px;letter-spacing:4px;color:#c7b99e;margin-top:12px}
 
-  const message='Здравствуйте! Хочу оформить заказ:\n\n'+
-    cart.map(x=>x.name+' — '+x.qty+' шт. — '+money(x.price*x.qty)).join('\n')+
-    '\n\nИтого: '+money(cart.reduce((s,x)=>s+x.price*x.qty,0));
+.hero{text-align:center;padding:45px 15px}
 
-  window.open(
-    'https://wa.me/'+PHONE+'?text='+encodeURIComponent(message),
-    '_blank'
-  );
-};
+.hero h1{color:#d6b77d;font-size:30px}
 
-$('exportBtn').onclick=()=>{
-  const blob=new Blob(
-    [JSON.stringify(products,null,2)],
-    {type:'application/json'}
-  );
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='luxe-perfume-catalog.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
-};
+.hero p{color:#c5bba9;line-height:1.6}
 
-$('importBtn').onclick=()=> $('importFile').click();
+.container{max-width:1150px;margin:auto;padding:20px}
 
-$('importFile').onchange=async e=>{
-  const f=e.target.files[0];
-  if(!f)return;
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:30px}
 
-  try{
-    const data=JSON.parse(await f.text());
-    if(!Array.isArray(data))throw Error();
+input,select,textarea{padding:13px;background:#211e19;color:white;border:1px solid #8b7148;border-radius:8px;font-size:15px}
 
-    products=data;
-    save();
-    alert('Каталог загружен!');
-  }catch{
-    alert('Не удалось прочитать файл.');
-  }
+.toolbar input{flex:1;min-width:200px}
 
-  e.target.value='';
-};
+.toolbar select{width:210px}
 
-render();
-renderCart();
-</script>
-</body>
-</html>
+button{border:0;border-radius:8px;padding:13px 17px;font-weight:bold;cursor:pointer}
+
+.gold{background:#c4a16a;color:#17130e}
+
+.gold:hover{background:#e0c18b}
+
+.section-title{text-align:center;color:#d
