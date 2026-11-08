@@ -1,122 +1,117 @@
-<option value="desc">Сначала дороже</option>
-</select>
-</div>
+innerHTML='<p>Корзина пока пуста.</p>';
+  }else{
+    $('cartItems').innerHTML=cart.map(x=>`
+      <div class="cart-item">
+        <div>
+          <strong>${safe(x.name)}</strong><br>
+          ${money(x.price)} × ${x.qty}
+        </div>
+        <div class="cart-actions">
+          <button onclick="changeQty(${Number(x.id)},-1)">−</button>
+          <button onclick="changeQty(${Number(x.id)},1)">+</button>
+          <button onclick="removeItem(${Number(x.id)})">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
 
-<h2 class="section-title">НАША КОЛЛЕКЦИЯ</h2>
-<div class="products" id="products"></div>
+  const total=cart.reduce((s,x)=>s+(Number(x.price)||0)*x.qty,0);
+  $('cartTotal').textContent=money(total);
+}
 
-<div style="text-align:center;margin-top:35px">
-<button class="gold" id="adminToggle">⚙ Управление товарами</button>
-</div>
+function changeQty(id,amount){
+  const item=cart.find(x=>Number(x.id)===Number(id));
+  if(!item)return;
+  item.qty+=amount;
+  if(item.qty<=0)cart=cart.filter(x=>Number(x.id)!==Number(id));
+  saveCart();
+}
 
-<section class="admin" id="admin">
-<h2>Добавить новый аромат</h2>
-<form id="productForm">
-<input id="pname" placeholder="Название аромата" required>
-<input id="pprice" type="number" min="0" placeholder="Цена в рублях" required>
-<input id="pvolume" placeholder="Объём, например 100 мл">
-<input id="pcategory" placeholder="Категория">
-<input id="pimage" placeholder="Ссылка на фотографию">
-<textarea id="pdesc" placeholder="Описание аромата"></textarea>
-<button class="gold" type="submit">Добавить товар</button>
-</form>
-<div class="admin-actions">
-<button class="gold" id="exportBtn">Скачать каталог</button>
-<button class="gold" id="importBtn">Загрузить каталог</button>
-<input type="file" id="importFile" accept=".json" hidden>
-</div>
-</section>
-</main>
-
-<button class="cart-button" id="cartOpen">
-🛒 Корзина <span class="cart-count" id="cartCount">0</span>
-</button>
-
-<div class="cart-panel" id="cartPanel">
-<div class="cart-content">
-<button class="close-cart" id="cartClose">✕ Закрыть</button>
-<h2>Моя корзина 🛒</h2>
-<div id="cartItems"></div>
-<div class="cart-total">Итого: <span id="cartTotal">0 ₽</span></div>
-<button class="cart-checkout" id="cartCheckout">ОФОРМИТЬ ЗАКАЗ В WHATSAPP</button>
-</div>
-</div>
-
-<footer>
-<div class="logo" style="font-size:22px">LUXE PERFUME</div>
-<p>Твой аромат — твой стиль.</p>
-</footer>
-
-<script>join('\n')+
-'\n\nИтого: '+money(
-cart.reduce((s,x)=>s+x.pricex.qty,0)
-);
-
-window.open(
-'https://wa.me/'+PHONE+'?text='+encodeURIComponent(message),
-'_blank'
-);
-};
+function removeItem(id){
+  cart=cart.filter(x=>Number(x.id)!==Number(id));
+  saveCart();
+}
 
 $('adminToggle').onclick=()=>{
-$('admin').classList.toggle('show');
-$('admin').scrollIntoView({behavior:'smooth',block:'nearest'});
+  $('admin').classList.toggle('show');
+  $('admin').scrollIntoView({behavior:'smooth',block:'nearest'});
 };
 
 $('productForm').addEventListener('submit',e=>{
-e.preventDefault();
+  e.preventDefault();
 
-const item={
-id:Date.now(),
-name:$('pname').value.trim(),
-price:Number($('pprice').value),
-volume:$('pvolume').value.trim(),
-category:$('pcategory').value.trim(),
-image:$('pimage').value.trim(),
-desc:$('pdesc').value.trim()
-};
+  const item={
+    id:Date.now(),
+    name:$('pname').value.trim(),
+    price:Number($('pprice').value),
+    volume:$('pvolume').value.trim(),
+    category:$('pcategory').value.trim(),
+    image:$('pimage').value.trim(),
+    desc:$('pdesc').value.trim()
+  };
 
-products.unshift(item);
-save();
-e.target.reset();
-alert('Товар добавлен в каталог!');
+  products.unshift(item);
+  save();
+  e.target.reset();
+  alert('Товар добавлен в каталог!');
 });
 
 $('search').addEventListener('input',render);
 $('sort').addEventListener('change',render);
 
-$('exportBtn').onclick=()=>{
-const blob=new Blob(
-[JSON.stringify(products,null,2)],
-{type:'application/json'}
-);
-const a=document.createElement('a');
-a.href=URL.createObjectURL(blob);
-a.download='luxe-perfume-catalog.json';
-a.click();
-URL.revokeObjectURL(a.href);
+$('cartOpen').onclick=()=> $('cartPanel').classList.add('open');
+$('cartClose').onclick=()=> $('cartPanel').classList.remove('open');
+
+$('cartPanel').onclick=e=>{
+  if(e.target===$('cartPanel'))$('cartPanel').classList.remove('open');
 };
 
-$('importBtn').onclick=()=>{
-$('importFile').click();
+$('cartCheckout').onclick=()=>{
+  if(!cart.length){
+    alert('Корзина пуста!');
+    return;
+  }
+
+  const message='Здравствуйте! Хочу оформить заказ:\n\n'+
+    cart.map(x=>x.name+' — '+x.qty+' шт. — '+money(x.price*x.qty)).join('\n')+
+    '\n\nИтого: '+money(cart.reduce((s,x)=>s+x.price*x.qty,0));
+
+  window.open(
+    'https://wa.me/'+PHONE+'?text='+encodeURIComponent(message),
+    '_blank'
+  );
 };
+
+$('exportBtn').onclick=()=>{
+  const blob=new Blob(
+    [JSON.stringify(products,null,2)],
+    {type:'application/json'}
+  );
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='luxe-perfume-catalog.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+$('importBtn').onclick=()=> $('importFile').click();
 
 $('importFile').onchange=async e=>{
-const f=e.target.files[0];
-if(!f)return;
+  const f=e.target.files[0];
+  if(!f)return;
 
-try{
-const data=JSON.parse(await f.text());
-if(!Array.isArray(data))throw Error();
+  try{
+    const data=JSON.parse(await f.text());
+    if(!Array.isArray(data))throw Error();
 
-products=data;
-save();
-alert('Каталог загружен!');
-}catch{
-alert('Не удалось прочитать файл.');
-}
+    products=data;
+    save();
+    alert('Каталог загружен!');
+  }catch{
+    alert('Не удалось прочитать файл.');
+  }
 
-e.target.value='';
+  e.target.value='';
 };
 
 render();
